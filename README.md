@@ -1,4 +1,4 @@
-# 🐲 AI-Powered Workflow Builder  flusso
+# 🐲 AI-Powered Workflow Builder  Pixro
 
 Flusso is a dynamic, node-based application that empowers users to visually design, construct, and execute complex AI-driven workflows. Leveraging the power of Google's Gemini API, this tool provides an intuitive interface for integrating image and text processing capabilities into custom pipelines.
 
