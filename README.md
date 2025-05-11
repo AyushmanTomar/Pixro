@@ -101,26 +101,33 @@ Follow these instructions to get the project up and running on your local machin
 ## 🖼️ Project Structure (Simplified)
 
 ```
-.
-├── app.py                 # Flask backend server
-├── requirements.txt       # Backend Python dependencies
-├── .env                   # Stores API keys (you create this)
-├── package.json           # Frontend dependencies and scripts
-├── WorkflowApp.jsx        # Main ReactFlow application component
-├── App.jsx                # Root React component (handles login, context)
-├── App.css                # Global and component-specific styles
-├── components/
-│   ├── LoginPage.jsx      # Login page component
-│   └── nodes/             # Custom ReactFlow node components
-│       ├── GenImageNode.jsx
-│       ├── ImageInputNode.jsx
-│       ├── PromptBoxNode.jsx
-│       └── TextInputNode.jsx
+backend/
+├── app.py
+├── requirements.txt
+├── node_modules/
+├── samples/
 ├── src/
-│   └── assets/            # Image assets used in the UI
-│       ├── logo.png
-│       └── ...
-└── ... (other frontend setup files like index.html, main.jsx, etc.)
+│   ├── assets/
+│   │   ├── logo_2.png
+│   │   ├── logo_3.png
+│   │   ├── logo.png
+│   │   └── react.svg
+│   ├── components/
+│   │   ├── nodes/
+│   │   │   ├── GenImageNode.jsx
+|   |   |   ├── ImageInputNode.jsx
+│   │   │   ├── PromptBoxNode.jsx
+│   │   │   └── TextInputNode.jsx
+│   │   └── LoginPage.jsx
+│   ├── App.css
+│   ├── App.jsx
+│   ├── index.css
+│   ├── index.jsx
+│   ├── main.jsx
+│   └── WorkflowApp.jsx
+├── uploads/
+└── .env
+
 ```
 
 ## 💡 Usage
@@ -138,4 +145,4 @@ Contributions are welcome! Please feel free to submit a Pull Request or open an 
 
 ## 📜 License
 
-This project is currently unlicensed. (Consider adding an MIT or other open-source license if applicable).
+This project is currently unlicensed.
