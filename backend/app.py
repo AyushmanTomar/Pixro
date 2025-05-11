@@ -7,8 +7,8 @@ import base64
 from io import BytesIO
 from PIL import Image
 import requests
-from google import genai  # You'll need to install this with pip
-from google.genai import types  # Import types for configuration
+from google import genai 
+from google.genai import types 
 import dotenv
 
 dotenv.load_dotenv()
@@ -16,12 +16,9 @@ dotenv.load_dotenv()
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Configure Gemini API (you'll need to set this environment variable)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-# print(GEMINI_API_KEY)
 genai.Client(api_key=GEMINI_API_KEY)
 
-# Storage for uploaded images and workflow results
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -31,7 +28,7 @@ def execute_workflow(workflow_data):
     edges = workflow_data.get('edges', [])
     print(workflow_data)
     
-    # Create a dictionary to store node outputs
+    # Dictionary to store node outputs
     node_outputs = {}
     
     # Process nodes in topological order
@@ -48,8 +45,7 @@ def execute_workflow(workflow_data):
         
         if node_id in processed_nodes:
             continue
-        
-        # Process node based on its type
+    
         if node['type'] == 'imageInput':
             # Image input just passes through the image
             node_outputs[node_id] = {
@@ -75,11 +71,9 @@ def execute_workflow(workflow_data):
                     if source_id in node_outputs:
                         incoming_data.append(node_outputs[source_id])
                     else:
-                        # Skip this node for now, we'll come back to it
                         nodes_to_process.append(node)
                         continue
             
-            # Get prompt from node data
             prompt = node['data'].get('prompt', '')
             
             # Gather images and text from inputs
@@ -91,15 +85,12 @@ def execute_workflow(workflow_data):
                     input_images.append(data['image'])
                 if data['text']:
                     input_text += data['text'] + "\n"
-            
-            # Combine with prompt
+
             full_prompt = f"{input_text}\n{prompt}" if input_text else prompt
             full_prompt = "Do not introduce or conclude your response(Strict). You are a image generation and prompt modification agent. below is the user query. analyze it and return response accordingly.\n\n"+full_prompt
             
-            # Call Gemini API for text generation
             response = call_gemini_text(full_prompt, input_images)
-            
-            # Store result
+  
             node_outputs[node_id] = {
                 'image': input_images[0] if input_images else None,  # Pass through first image
                 'text': response
@@ -121,28 +112,24 @@ def execute_workflow(workflow_data):
             
             # Get prompt from node data
             prompt = node['data'].get('prompt', '')
-            
-            # Gather images and text from inputs
+
             input_images = []
             input_text = ""
-            # print(input_images)
             
             for data in incoming_data:
                 if data['image']:
                     input_images.append(data['image'])
                 if data['text']:
                     input_text += data['text'] + "\n"
-            
-            # Combine with prompt
+
             full_prompt = f"{input_text}\n{prompt}" if input_text else prompt
             print(full_prompt)
-            # Call Gemini API for image generation
             generated_image = call_gemini_image(full_prompt, input_images)
             
             # Store result
             node_outputs[node_id] = {
                 'image': generated_image,
-                'text': input_text  # Pass through text
+                'text': input_text 
             }
             processed_nodes.add(node_id)
         
@@ -154,10 +141,8 @@ def execute_workflow(workflow_data):
                     if node['id'] == target_id and target_id not in processed_nodes:
                         nodes_to_process.append(node)
     
-    # Collect final outputs
     final_outputs = {}
     for node_id, output in node_outputs.items():
-        # Check if this node is an endpoint (no outgoing edges)
         is_endpoint = True
         for edge in edges:
             if edge['source'] == node_id:
@@ -175,12 +160,9 @@ def execute_workflow(workflow_data):
 def call_gemini_text(prompt, images=None):
     """Call Gemini API for text generation"""
     try:
-        # Updated to use gemini-1.5-flash for text generation
         client = genai.Client(api_key=GEMINI_API_KEY)
         
-        contents = prompt
-        # print(images)
-        
+        contents = prompt        
         # Add images if available
         if images:
             multi_contents = [prompt]
@@ -213,7 +195,6 @@ def call_gemini_image(prompt, images=None):
         client = genai.Client(api_key=GEMINI_API_KEY)
         contents = [prompt]
 
-        # --- Input image processing (keep as before) ---
         if images:
             print(f"Processing {len(images)} input images for Gemini...")
             for i, img_data in enumerate(images):
@@ -222,7 +203,6 @@ def call_gemini_image(prompt, images=None):
                         header, encoded = img_data.split(';base64,')
                         image_bytes = base64.b64decode(encoded)
                         image = Image.open(BytesIO(image_bytes)).convert("RGB")
-                        # image = PIL.Image.open('6841d8c2-947a-4754-9e1f-fd01d75402c4.jpeg')
                         contents.append(image)
                         print(f"  Added input image {i+1} to contents.")
                     except Exception as decode_err:
@@ -230,9 +210,6 @@ def call_gemini_image(prompt, images=None):
                 elif img_data:
                      print(f"  Skipping input image {i+1}: Does not appear to be a valid data URI.")
 
-        # --- API Call (keep as before) ---
-        print(f"--- Calling Gemini Image Gen ---")
-        # ... (model, prompt, contents logging) ...
         response = client.models.generate_content(
             model="gemini-2.0-flash-exp-image-generation",
             contents=contents,
@@ -270,23 +247,17 @@ def call_gemini_image(prompt, images=None):
                 print(f"    Received bytes length: {len(image_bytes)}")
                 try:
                     encoded = base64.b64encode(image_bytes).decode('utf-8')
-                    # Use the original mime_type provided by the API for the data URI
                     data_uri = f"data:{mime_type};base64,{encoded}"
                     print(f"    Successfully base64 encoded original bytes (mime: {mime_type}). Starts with: {data_uri[:70]}...")
                     generated_image_uri = data_uri
-                    # Break after processing the first valid image part
                     break
                 except Exception as encode_err:
                      print(f"    Error base64 encoding image bytes: {encode_err}")
-                     # Continue loop to check other parts
 
             else:
-                # Logging skipped parts (keep as before)
                  skip_reason = "Unknown structure"
-                 # ... (logic to determine skip_reason) ...
                  print(f"  Skipping Part {i}: {skip_reason}.")
 
-        # --- Return Logic ---
         if generated_image_uri:
             return generated_image_uri
         else:
