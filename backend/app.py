@@ -9,12 +9,16 @@ from PIL import Image
 import requests
 from google import genai  # You'll need to install this with pip
 from google.genai import types  # Import types for configuration
+import dotenv
+
+dotenv.load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Configure Gemini API (you'll need to set this environment variable)
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyBMEPyYcILjZCxz6TaqR6IGcl7t5jWz0Vs")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+# print(GEMINI_API_KEY)
 genai.Client(api_key=GEMINI_API_KEY)
 
 # Storage for uploaded images and workflow results
@@ -90,6 +94,7 @@ def execute_workflow(workflow_data):
             
             # Combine with prompt
             full_prompt = f"{input_text}\n{prompt}" if input_text else prompt
+            full_prompt = "Do not introduce or conclude your response(Strict). You are a image generation and prompt modification agent. below is the user query. analyze it and return response accordingly.\n\n"+full_prompt
             
             # Call Gemini API for text generation
             response = call_gemini_text(full_prompt, input_images)
@@ -174,7 +179,7 @@ def call_gemini_text(prompt, images=None):
         client = genai.Client(api_key=GEMINI_API_KEY)
         
         contents = prompt
-        print(images)
+        # print(images)
         
         # Add images if available
         if images:
