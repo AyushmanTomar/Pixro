@@ -9,6 +9,7 @@ from PIL import Image
 import requests
 from google import genai 
 from google.genai import types 
+from pymongo import MongoClient
 import dotenv
 
 dotenv.load_dotenv()
@@ -18,6 +19,13 @@ CORS(app)  # Enable CORS for all routes
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 genai.Client(api_key=GEMINI_API_KEY)
+
+
+MONGO_URI = "Update with your uri"
+client = MongoClient(MONGO_URI)
+
+db = client["pixro"]  # Replace with your actual DB name
+users_collection = db["pixro"] 
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -268,6 +276,36 @@ def call_gemini_image(prompt, images=None):
         print(f"!!! FATAL Error in call_gemini_image: {e}")
         traceback.print_exc()
         return None
+
+
+
+
+ 
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return jsonify({'valid': False, 'email': None, 'error': 'Missing credentials', 'message':None}), 400
+
+    user = users_collection.find_one({"email": email})
+
+    if user:
+        if user['password'] == password:
+            return jsonify({'valid': True, 'email': user['email'],'message':"Login Successfull"}), 200
+        else:
+            return jsonify({'valid': False, 'email': None, 'error': 'Incorrect password', 'message':None}), 401
+    else:
+        # Auto-register the user
+        users_collection.insert_one({
+            "email": email,
+            "password": password 
+        })
+        return jsonify({'valid': True, 'email': email, 'error': 'User Not Found','message':'New Account Created, Welcome'}), 200
+    
+
 
 
 @app.route('/api/upload-image', methods=['POST'])

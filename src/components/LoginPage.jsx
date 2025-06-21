@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // import './Login.css'; // If using a separate CSS file
 
 // Define the duration (5 days in milliseconds)
@@ -11,46 +13,63 @@ const LoginPage = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault(); // Prevent default form submission
     setError(''); // Clear previous errors
 
-    // --- Simple hardcoded validation ---
-    // Replace with API call later. In a real app, the API would return success/failure
-    // and potentially a session token.
-    if (email === 'abc@testmail.com' && password === 'abc') {
-      console.log('Login successful');
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      // --- Persistence Logic ---
-      const expirationTime = Date.now() + LOGIN_DURATION_MS; // Calculate expiration timestamp
+      // if (!response.ok) {
+      //   throw new Error('Network response was not ok');
+      // }
 
-      try {
-        // Store user identifier and expiration time in localStorage
-        // IMPORTANT: Don't store sensitive data like passwords in localStorage!
-        // Store the email here for simplicity, but a session token is preferred in real apps.
-        localStorage.setItem(LOCAL_STORAGE_USER_KEY, email);
-        localStorage.setItem(LOCAL_STORAGE_EXPIRATION_KEY, expirationTime.toString()); // Store as string
-        console.log(`Login state saved to localStorage. Expires at: ${new Date(expirationTime).toLocaleString()}`);
+      const data = await response.json();
+      const { valid, email: returnedEmail,error: errorMsg, message } = data;
 
-        // Callback to update App state, passing the user identifier
-        onLoginSuccess(email);
+    
 
-      } catch (storageError) {
-        console.error("Failed to save login state to localStorage:", storageError);
-        setError("Could not save login session. Please ensure browser storage is enabled.");
-        // Optionally, still allow login for the current session without persistence
-        // onLoginSuccess(email);
+      if(valid == true && message != null)
+      {
+        localStorage.setItem('loginMessage', message); 
+        console.log(message);
+      }
+        
+
+      if (valid === true && returnedEmail != null) {
+        console.log('Login successful');
+
+        const expirationTime = Date.now() + LOGIN_DURATION_MS;
+
+        try {
+          localStorage.setItem(LOCAL_STORAGE_USER_KEY, returnedEmail);
+          localStorage.setItem(LOCAL_STORAGE_EXPIRATION_KEY, expirationTime.toString());
+          console.log(`Login state saved to localStorage. Expires at: ${new Date(expirationTime).toLocaleString()}`);
+          onLoginSuccess(returnedEmail);
+        } catch (storageError) {
+          console.error("Failed to save login state to localStorage:", storageError);
+          setError("Could not save login session. Please ensure browser storage is enabled.");
+        }
+      } else {
+        setError('Invalid email or password.');
       }
 
-    } else {
-      setError('Invalid email or password.');
+    } catch (apiError) {
+      console.error("Login API call failed:", apiError);
+      setError('An error occurred while trying to log in. Please try again later.');
     }
   };
 
   return (
     <div className="login-container"> {/* Add className if using Login.css */}
       <div className="login-box">  {/* Add className if using Login.css */}
-        <img src="src\assets\logo.png" alt="" width={"200px"}/>
+        <img src="src\assets\logo.png" alt="" width={"200px"} />
         <h2>Login/SignUp</h2>
         <form onSubmit={handleLogin} className="login-form"> {/* Add className if using Login.css */}
           <div className="input-group"> {/* Add className if using Login.css */}
@@ -61,10 +80,10 @@ const LoginPage = ({ onLoginSuccess }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="e.g., abc@testmail.com" // Updated placeholder
+              placeholder="Enter your Mail ID" // Updated placeholder
             />
           </div>
-          <div className="input-group"> {/* Add className if using Login.css */}
+          <div className="input-group"> 
             <label htmlFor="password">Password</label>
             <input
               type="password"
@@ -72,15 +91,16 @@ const LoginPage = ({ onLoginSuccess }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Enter your password (abc)" // Updated placeholder
+              placeholder="Enter your password" // Updated placeholder
             />
           </div>
-          {error && <p className="login-error">{error}</p>} {/* Add className if using Login.css */}
-          <button type="submit" className="login-button"> {/* Add className if using Login.css */}
+          {error && <p className="login-error">{error}</p>}
+          <button type="submit" className="login-button">
             Login
           </button>
         </form>
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };

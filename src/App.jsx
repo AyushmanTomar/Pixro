@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, createContext } from 'react';
 import LoginPage from './components/LoginPage'; // Ensure path is correct
 import WorkflowApp from './WorkflowApp'; // Your main app component
 import './App.css';
+import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from 'react-toastify';
 
 // Define localStorage keys (can be imported from a constants file)
 const LOCAL_STORAGE_EXPIRATION_KEY = 'loginExpiration';

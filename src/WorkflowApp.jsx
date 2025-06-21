@@ -1,4 +1,7 @@
 import React, { useState, useCallback, useContext, useEffect } from 'react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import ReactFlow, {
   addEdge,
   MiniMap,
@@ -32,6 +35,7 @@ const nodeTypes = {
 const initialNodes = [];
 const initialEdges = [];
 
+
 // Helper for node labels
 const getNodeLabel = (type) => {
   switch (type) {
@@ -44,7 +48,7 @@ const getNodeLabel = (type) => {
 }
 
 // Renamed the main component to WorkflowApp
-const WorkflowApp = ( { onLogout } ) => { // Accept onLogout prop if needed
+const WorkflowApp = ({ onLogout }) => { // Accept onLogout prop if needed
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -84,6 +88,34 @@ const WorkflowApp = ( { onLogout } ) => { // Accept onLogout prop if needed
     );
   }, [updateNodeData, setNodes]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const storedMessage = localStorage.getItem('loginMessage');
+      if (storedMessage) {
+        toast.success(storedMessage);
+        localStorage.removeItem('loginMessage');
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const [userEmail, setUserEmail] = useState('');
+
+  useEffect(() => {
+    // Read user info from localStorage
+    const storedEmail = localStorage.getItem('loggedInUserEmail');
+
+    if (storedEmail) {
+      setUserEmail(storedEmail);
+    }
+
+  }, []);
+
+  // useEffect(() => {
+  //   localStorage.setItem('loginMessage', 'Test login message');
+  // }, []);
+
   const onAddNode = (nodeType) => {
     const newNode = {
       id: `${nodeType}_${Date.now()}`,
@@ -104,6 +136,7 @@ const WorkflowApp = ( { onLogout } ) => { // Accept onLogout prop if needed
   };
 
   const executeWorkflow = async () => {
+    toast.warning("Executing Workflow")
     try {
       setIsExecuting(true);
       setSelectedNodeId(null);
@@ -158,7 +191,9 @@ const WorkflowApp = ( { onLogout } ) => { // Accept onLogout prop if needed
           return { ...node, data: baseData };
         })
       );
+      toast.success("Workflow Executed Successfully")
     } catch (error) {
+      toast.error("Workflow was not Executed")
       console.error('Error executing workflow:', error);
       alert(`Error executing workflow: ${error.message}`);
     } finally {
@@ -190,16 +225,17 @@ const WorkflowApp = ( { onLogout } ) => { // Accept onLogout prop if needed
   return (
     // Context Provider is now in App.jsx
     <div className="app-container">
+      <ToastContainer position="top-right" autoClose={3000} />
       <button onClick={toggleSidebar} className="sidebar-toggle-button">
         {isSidebarOpen ? <FiX /> : <FiMenu />}
       </button>
 
       <div className={`sidebar ${isSidebarOpen ? '' : 'collapsed'}`}>
-         {/* Added simple placeholder logo/user info */} 
-         <div className="logo_div">
-             <img src="src\assets\logo_2.png" alt="Logo" width={"100px"} /> {/* Adjusted path */} 
-             <img src="src\assets\logo_3.png" alt="Name Logo" className='logo_name' /> {/* Adjusted path */} 
-         </div>
+        {/* Added simple placeholder logo/user info */}
+        <div className="logo_div">
+          <img src="src\assets\logo_2.png" alt="Logo" width={"100px"} /> {/* Adjusted path */}
+          <img src="src\assets\logo_3.png" alt="Name Logo" className='logo_name' /> {/* Adjusted path */}
+        </div>
 
         <h2>Workflow Blocks</h2>
         <div className="node-buttons">
@@ -254,8 +290,8 @@ const WorkflowApp = ( { onLogout } ) => { // Accept onLogout prop if needed
 
       {!isSidebarOpen && (
         <div className='topbar'>
-          <img src="src\assets\logo.png" alt="User Avatar" /> {/* Adjusted path */} 
-          <div className='Username'>Ayushman</div> {/* Consider making this dynamic */} 
+          <img src="src\assets\logo.png" alt="User Avatar" /> {/* Adjusted path */}
+          <div className='Username'>{userEmail}</div> {/* Consider making this dynamic */}
         </div>
       )}
 

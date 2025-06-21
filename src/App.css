@@ -7,6 +7,11 @@
   background-color: var(--canvas-bg);
 }
 
+.Toastify__toast-container {
+  margin-top: 70px !important;
+  z-index:99999999999  !important;
+}
+
 .login-box {
   background-color: #fff;
   padding: 40px 30px;
