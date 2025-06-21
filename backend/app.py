@@ -18,11 +18,12 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+MONGO = os.environ.get("MONGO_URI")
 genai.Client(api_key=GEMINI_API_KEY)
 
 
 MONGO_URI = "Update with your uri"
-client = MongoClient(MONGO_URI)
+client = MongoClient(MONGO)
 
 db = client["pixro"]  # Replace with your actual DB name
 users_collection = db["pixro"] 
